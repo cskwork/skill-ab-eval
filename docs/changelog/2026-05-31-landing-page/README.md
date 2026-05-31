@@ -62,4 +62,11 @@ Date: 2026-05-31.
     APPROVE); no `og:image` (needs a raster asset; brief marked optional); `!important` on `.nav-github`
     + scattered inline styles (cosmetic); result numbers are illustrative and carry an in-page note;
     `--positive` shares the accent hue (intentional); mobile nav hides section anchors (scroll still works).
-- Deliver: pending (delivery-gate.sh + repo CI-equivalent suite, then commit + enable Pages via gh API).
+- Deliver: DONE.
+  - plan_hash matched; delivery-gate.sh exit 0 (artifacts + GREEN + completeness contract + GO +
+    repo CI-equivalent suite green: validate_evals.py / py_compile / bash -n).
+  - committee: architect APPROVE, security APPROVE, code-reviewer APPROVE (after the a11y rewind).
+  - committed f5c212f, pushed to origin/main (user-approved direct push).
+  - GitHub Pages enabled via gh API (source main /docs); build status "built", HTTPS enforced.
+  - Live: https://cskwork.github.io/skill-ab-eval/ (HTTP 200, title verified).
+  - Repo About: homepage + description updated to include the Pages link (user request).
