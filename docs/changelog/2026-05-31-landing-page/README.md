@@ -70,3 +70,15 @@ Date: 2026-05-31.
   - GitHub Pages enabled via gh API (source main /docs); build status "built", HTTPS enforced.
   - Live: https://cskwork.github.io/skill-ab-eval/ (HTTP 200, title verified).
   - Repo About: homepage + description updated to include the Pages link (user request).
+
+## Post-delivery enhancements (user-approved follow-up)
+- Open Graph social card: added `docs/og.png` (1200x630, rendered from
+  `og-card.html` via puppeteer to match the site aesthetic) + og:image / og:url /
+  og:type / twitter:card=summary_large_image / twitter:image meta in index.html.
+  Fixes the previously-blank social unfurl (the LOW finding from code review).
+- Removed the three unnecessary `!important` on `.nav-github` (cascade unchanged;
+  `.nav-github` already out-specifies `.nav-links a`).
+- CSP meta intentionally NOT added: the page is inline-CSS+JS, so a meaningful CSP
+  would require `'unsafe-inline'` for both style-src and script-src, giving little
+  real protection while risking breakage. Google Fonts SRI remains a GitHub Pages
+  header constraint (security review APPROVE). Left as accepted.

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1200">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 1200px;
+      height: 630px;
+      overflow: hidden;
+      background: #0d0f11;
+    }
+
+    .card {
+      width: 1200px;
+      height: 630px;
+      overflow: hidden;
+      background: #0d0f11;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 64px 80px 56px;
+      box-sizing: border-box;
+      font-family: 'Outfit', 'Helvetica Neue', Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Subtle grid overlay */
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(37, 44, 51, 0.45) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(37, 44, 51, 0.45) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Top accent line */
+    .card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #22d3ee 0%, #0e7490 60%, transparent 100%);
+      z-index: 1;
+    }
+
+    .card > * { position: relative; z-index: 2; }
+
+    /* Top section */
+    .top {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .eyebrow {
+      font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      color: #22d3ee;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .wordmark {
+      font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 44px;
+      font-weight: 500;
+      color: #e8edf2;
+      margin-bottom: 12px;
+      line-height: 1;
+    }
+
+    .wordmark .accent {
+      color: #22d3ee;
+    }
+
+    .headline {
+      font-family: 'Outfit', 'Helvetica Neue', Arial, sans-serif;
+      font-size: 68px;
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.025em;
+      color: #e8edf2;
+      margin-bottom: 18px;
+    }
+
+    .subline {
+      font-size: 26px;
+      font-weight: 400;
+      color: #8b98a6;
+      line-height: 1.35;
+      max-width: 860px;
+      margin-bottom: 20px;
+    }
+
+    /* Tag row */
+    .tag-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: nowrap;
+    }
+
+    .tag {
+      font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 14px;
+      font-weight: 400;
+      color: #8b98a6;
+      background: #1a1f24;
+      border: 1px solid #252c33;
+      padding: 5px 12px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .tag-accent {
+      color: #22d3ee;
+      background: rgba(34, 211, 238, 0.08);
+      border-color: #0e7490;
+    }
+
+    .tag-sep {
+      font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 14px;
+      color: #252c33;
+      padding: 0 4px;
+      user-select: none;
+    }
+
+    /* Bottom row */
+    .bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .bottom-url {
+      font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 16px;
+      color: #808c99;
+      letter-spacing: 0.01em;
+    }
+
+    .bottom-badge {
+      font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 14px;
+      color: #808c99;
+      background: #1a1f24;
+      border: 1px solid #252c33;
+      padding: 4px 12px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+
+    <div class="top">
+      <p class="eyebrow">OPEN-SOURCE EVALUATION HARNESS</p>
+      <p class="wordmark"><span class="accent">skill</span>-ab-eval</p>
+      <h1 class="headline">Prove what actually<br>works</h1>
+      <p class="subline">Does a SKILL.md actually help, and which CLI agent is best? Real evidence, not vibes.</p>
+      <div class="tag-row">
+        <span class="tag tag-accent">with_skill</span>
+        <span class="tag">without_skill</span>
+        <span class="tag-sep">|</span>
+        <span class="tag">claude</span>
+        <span class="tag">codex</span>
+        <span class="tag">gemini</span>
+        <span class="tag">agy</span>
+        <span class="tag">openai</span>
+      </div>
+    </div>
+
+    <div class="bottom">
+      <span class="bottom-url">cskwork.github.io/skill-ab-eval</span>
+      <span class="bottom-badge">MIT</span>
+    </div>
+
+  </div>
+</body>
+</html>
