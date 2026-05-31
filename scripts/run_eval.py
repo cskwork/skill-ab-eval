@@ -79,6 +79,9 @@ def run_via(runner: str, prompt: str, cfg: argparse.Namespace) -> str:
     adapter = RUNNERS_DIR / f"{runner}.sh"   # custom harness (POSIX / git-bash)
     if not adapter.exists():
         raise FileNotFoundError(f"unknown runner '{runner}' (no runners/{runner}.sh)")
+    if not shutil.which("bash"):
+        raise RuntimeError(f"runner '{runner}': custom .sh adapters need bash "
+                           "(install Git for Windows or WSL)")
     return _capture(["bash", "-c", adapter.read_text(encoding="utf-8")], runner, cfg,
                     env={**os.environ, "PROMPT": prompt})
 
@@ -88,8 +91,12 @@ def _run_builtin(runner: str, prompt: str, cfg: argparse.Namespace) -> str:
     if not exe:
         raise RuntimeError(f"{runner}: CLI not found on PATH")
     argv = [exe] + [prompt if a == "{prompt}" else a for a in BUILTIN_ARGS[runner]]
-    if os.name == "nt" and exe.lower().endswith((".cmd", ".bat")):
-        argv = ["cmd", "/c"] + argv
+    if os.name == "nt":  # wrap shim scripts; bare .exe runs directly
+        low = exe.lower()
+        if low.endswith((".cmd", ".bat")):
+            argv = ["cmd", "/c"] + argv
+        elif low.endswith(".ps1"):
+            argv = ["powershell", "-NoProfile", "-File"] + argv
     return _capture(argv, runner, cfg)
 
 
@@ -98,20 +105,26 @@ def _capture(argv: list[str], runner: str, cfg: argparse.Namespace,
     proc = subprocess.run(argv, capture_output=True, text=True,
                           timeout=cfg.timeout, env=env)
     out = proc.stdout.strip()
-    if proc.returncode != 0 and not out:
-        raise RuntimeError(f"{runner} failed (rc={proc.returncode}): "
-                           f"{proc.stderr.strip()[:200]}")
+    if proc.returncode != 0:
+        if not out:
+            raise RuntimeError(f"{runner} failed (rc={proc.returncode}): "
+                               f"{proc.stderr.strip()[:200]}")
+        print(f"warning: {runner} exited {proc.returncode} but produced output; "
+              f"grading it anyway", file=sys.stderr)
     return out
 
 
 def _openai_chat(prompt: str, cfg: argparse.Namespace) -> str:
     import urllib.request
+    key = os.environ.get("OPENAI_API_KEY")
+    if not key:
+        raise RuntimeError("openai runner requires OPENAI_API_KEY")
     body = json.dumps({"model": cfg.openai_model,
                        "messages": [{"role": "user", "content": prompt}],
                        "temperature": cfg.temperature}).encode("utf-8")
     req = urllib.request.Request(
         cfg.base_url.rstrip("/") + "/chat/completions", data=body,
-        headers={"Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}",
+        headers={"Authorization": f"Bearer {key}",
                  "Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=cfg.timeout) as resp:
         return json.loads(resp.read())["choices"][0]["message"]["content"].strip()
@@ -149,8 +162,14 @@ def grade(task: str, ev: dict, answer: str, cfg: argparse.Namespace) -> dict:
     raw = run_via(cfg.judge, build_judge_prompt(
         task, ev.get("expected_output", ""), ev.get("assertions", []), answer), cfg)
     parsed = parse_judge_json(raw)
-    return {"assertions": parsed.get("assertions", []),
-            "score": float(parsed.get("score", 0)), "notes": parsed.get("notes", "")}
+    asserts = parsed.get("assertions", [])
+    if not isinstance(asserts, list):
+        asserts = []
+    try:
+        score = float(parsed.get("score", 0))
+    except (TypeError, ValueError):
+        score = 0.0
+    return {"assertions": asserts, "score": score, "notes": parsed.get("notes", "")}
 
 
 # ---------------------------------------------------------------- evaluation
@@ -171,8 +190,13 @@ def run_cell(task: str, ev: dict, runner: str, side: str, skill_body: str,
     trials = []
     prompt = full_prompt(skill_body, task, side)
     for t in range(1, cfg.trials + 1):
-        answer = run_via(runner, prompt, cfg)
-        g = grade(task, ev, answer, cfg)
+        try:  # a flaky harness/judge shouldn't abort the whole matrix
+            answer = run_via(runner, prompt, cfg)
+            g = grade(task, ev, answer, cfg)
+        except Exception as exc:
+            print(f"  {ev['id']} | {runner:7} | {side:13} | trial {t} ERROR: "
+                  f"{exc}", file=sys.stderr)
+            continue
         cell = out_dir / runner / side / f"trial-{t}"
         cell.mkdir(parents=True, exist_ok=True)
         (cell / "answer.md").write_text(answer, encoding="utf-8")
@@ -203,9 +227,17 @@ def verdict_for(lift: float) -> str:
     return "negative"
 
 
+def _next_iteration(base: Path) -> Path:
+    """Pick iteration-N+1 so reruns never overwrite prior results."""
+    n = 1
+    while (base / f"iteration-{n}").exists():
+        n += 1
+    return base / f"iteration-{n}"
+
+
 def evaluate(evals: list[dict], skill_body: str, skill_name: str,
              cfg: argparse.Namespace) -> dict:
-    out_root = Path(cfg.workspace) / skill_name / "iteration-1"
+    out_root = _next_iteration(Path(cfg.workspace) / skill_name)
     has_assert = any(ev.get("assertions") for ev in evals)
     metric = pass_rate if has_assert else mean_score
     sides = sides_for(skill_body)
@@ -280,9 +312,10 @@ def _write_summary(out_root: Path, s: dict) -> None:
 def _resolve_runners(cfg: argparse.Namespace) -> None:
     avail = available_runners()
     cfg.runners = [r.strip() for r in cfg.runners.split(",")] if cfg.runners else avail
-    missing = [r for r in cfg.runners if r not in avail and r != "openai"]
+    missing = [r for r in cfg.runners if r not in avail]
     if missing:
-        print(f"warning: requested runners not detected: {missing}", file=sys.stderr)
+        print(f"warning: requested runners not detected (will error if used): "
+              f"{missing}", file=sys.stderr)
     if not cfg.runners:
         sys.exit("error: no runners available. Install a CLI (claude/codex/gemini/agy) "
                  "or set OPENAI_API_KEY.")

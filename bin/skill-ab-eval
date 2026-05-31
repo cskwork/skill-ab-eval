@@ -8,4 +8,8 @@ if [ -z "$PY" ]; then
   echo "skill-ab-eval: python3 is required" >&2
   exit 1
 fi
+if ! "$PY" -c "import sys; sys.exit(0 if sys.version_info >= (3,8) else 1)" 2>/dev/null; then
+  echo "skill-ab-eval: python 3.8+ required (found: $PY)" >&2
+  exit 1
+fi
 exec "$PY" "$HERE/scripts/run_eval.py" "$@"

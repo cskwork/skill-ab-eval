@@ -17,6 +17,11 @@ on failure. That's the whole interface — it composes with any CLI. The orchest
 reads the adapter and runs it with `bash -c`, so the prompt arrives as `$PROMPT`
 (no temp files, and no path-mangling on Windows git-bash).
 
+**Security:** always pass `$PROMPT` as a quoted argument to the target CLI
+(`some-cli "$PROMPT"`). Never `eval "$PROMPT"`, never `bash -c "$PROMPT"`, and never
+put it inside command substitution (`` `...$PROMPT...` `` / `$(...$PROMPT...)`) — the
+prompt is untrusted text and those forms would execute it as shell code.
+
 ## Built-in adapters
 
 | runner   | CLI         | invocation         | auth |

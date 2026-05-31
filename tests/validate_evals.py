@@ -26,7 +26,9 @@ def validate(path: Path) -> list[str]:
         if ev.get("id") in seen:
             errs.append(f"{where}.id duplicate: {ev.get('id')}")
         seen.add(ev.get("id"))
-        asserts = ev.get("assertions")
+        # assertions optional (runtime falls back to holistic scoring) but, if
+        # present, must be a list of strings — they are the pass/fail score.
+        asserts = ev.get("assertions", [])
         if not isinstance(asserts, list) or not all(isinstance(a, str) for a in asserts):
             errs.append(f"{where}.assertions must be a list of strings")
         if "files" in ev and not isinstance(ev["files"], list):
@@ -35,6 +37,7 @@ def validate(path: Path) -> list[str]:
 
 
 def main() -> int:
+    # templates/evals.json is intentionally excluded (placeholder values).
     files = sorted(ROOT.glob("examples/**/evals/evals.json"))
     if not files:
         print("no evals.json found under examples/")
