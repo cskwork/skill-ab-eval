@@ -1,0 +1,24 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Python syntax check (orchestrator)
+        run: python -m py_compile scripts/run_eval.py
+      - name: Shell adapter syntax check
+        run: for f in runners/*.sh bin/skill-ab-eval; do bash -n "$f"; done
+      - name: Validate every evals.json against the schema
+        run: python tests/validate_evals.py
+      - name: CLI smoke (no credits — just argparse + runner detection)
+        run: |
+          python scripts/run_eval.py --help
+          python scripts/run_eval.py runners

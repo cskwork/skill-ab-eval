@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# skill-ab-eval CLI entrypoint. Thin wrapper around scripts/run_eval.py so the
+# orchestration logic stays cross-platform (Python) while invocation stays CLI.
+set -euo pipefail
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PY="$(command -v python3 || command -v python)"
+if [ -z "$PY" ]; then
+  echo "skill-ab-eval: python3 is required" >&2
+  exit 1
+fi
+exec "$PY" "$HERE/scripts/run_eval.py" "$@"

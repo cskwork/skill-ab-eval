@@ -1,0 +1,16 @@
+{
+  "skill_name": "REPLACE_WITH_SKILL_NAME",
+  "evals": [
+    {
+      "id": "core-behavior",
+      "name": "core behavior the skill claims to improve",
+      "prompt": "A neutral task that the skill should make the agent better at. Do NOT restate the skill's rules here.",
+      "files": [],
+      "expected_output": "Prose description of what a good answer looks like. Shown only to the judge.",
+      "assertions": [
+        "An atomic, binary claim the judge can check (true/false).",
+        "Another independent binary claim."
+      ]
+    }
+  ]
+}

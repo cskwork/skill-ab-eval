@@ -1,0 +1,6 @@
+# Cross-platform CLI tool: store and check out LF everywhere so bash adapters and
+# the entrypoint run on Linux/macOS/CI regardless of where they were authored.
+* text=auto eol=lf
+*.sh text eol=lf
+bin/skill-ab-eval text eol=lf
+*.py text eol=lf

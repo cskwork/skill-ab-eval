@@ -1,0 +1,8 @@
+diff --git a/src/user/profile.ts b/src/user/profile.ts
+index 11aabb2..22ccdd3 100644
+--- a/src/user/profile.ts
++++ b/src/user/profile.ts
+@@ -14,7 +14,7 @@ export function displayName(user: User): string {
+-  return user.profile.nickname.trim();
++  return user.profile?.nickname?.trim() ?? user.email;
+ }

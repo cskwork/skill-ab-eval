@@ -1,0 +1,7 @@
+# eval workspaces are reproducible artifacts; ignore by default.
+# the committed example under examples/*/result is intentionally tracked.
+skill-ab-eval-workspace/
+*.pyc
+__pycache__/
+.DS_Store
+.env
