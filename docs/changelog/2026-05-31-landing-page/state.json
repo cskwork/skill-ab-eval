@@ -1,0 +1,30 @@
+{
+  "mode": "greenfield",
+  "objective": "make landing page for this repo skill host in github pages",
+  "target_repo": "cskwork/skill-ab-eval",
+  "slug": "2026-05-31-landing-page",
+  "current_phase": "build",
+  "cycles": {
+    "intake": 0,
+    "validate": 0,
+    "plan": 0,
+    "human_feedback": 0,
+    "build": 2,
+    "verify": 0,
+    "qa": 1,
+    "deliver": 0,
+    "reproduce": 0,
+    "diagnose": 0,
+    "fix": 0,
+    "explore": 0
+  },
+  "error_signatures": {},
+  "go_decision": "GO",
+  "plan_hash": "0879de7643827ed6e170cac760a5b53c9979538d4f730a25510d925687370457",
+  "approval": {
+    "phase": "Build",
+    "status": "APPROVED"
+  },
+  "circuit_breaker_threshold": 3,
+  "pages_enable": "gh-api"
+}

@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="skill-ab-eval: measure whether a SKILL.md actually changes agent behavior, and which CLI harness performs best on your task. Real evidence, not vibes.">
+  <meta property="og:title" content="skill-ab-eval - Prove what actually works">
+  <meta property="og:description" content="Two questions, one evaluation harness: does your skill help, and which CLI agent is best? Real result tables, real commands.">
+  <meta name="theme-color" content="#0d0f11">
+  <title>skill-ab-eval - Prove what actually works</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%230d0f11'/%3E%3Ctext x='5' y='23' font-family='monospace' font-size='18' fill='%2322d3ee'%3E%CE%B4%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* --- Token System --- */
+    :root {
+      --bg-base:        #0d0f11;
+      --bg-surface:     #131619;
+      --bg-raised:      #1a1f24;
+      --bg-border:      #252c33;
+      --text-primary:   #e8edf2;
+      --text-secondary: #8b98a6;
+      --text-muted:     #808c99;
+      --accent:         #22d3ee;
+      --accent-dim:     #0e7490;
+      --accent-glow:    rgba(34,211,238,0.12);
+      --positive:       #22d3ee;
+      --negative:       #f87171;
+      --neutral:        #94a3b8;
+      --font-sans:      'Outfit', 'Helvetica Neue', Arial, sans-serif;
+      --font-mono:      'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      --radius-sm:      4px;
+      --radius-md:      6px;
+      --radius-lg:      10px;
+      --space-1:        0.25rem;
+      --space-2:        0.5rem;
+      --space-3:        0.75rem;
+      --space-4:        1rem;
+      --space-6:        1.5rem;
+      --space-8:        2rem;
+      --space-12:       3rem;
+      --space-16:       4rem;
+      --space-20:       5rem;
+      --space-24:       6rem;
+      --max-w:          1120px;
+      --nav-h:          64px;
+    }
+
+    /* --- Reset --- */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-base);
+      color: var(--text-primary);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code, pre { font-family: var(--font-mono); }
+    table { border-collapse: collapse; width: 100%; }
+
+    /* --- Focus Visible --- */
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+      border-radius: var(--radius-sm);
+    }
+
+    /* --- Reduced Motion --- */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+      .reveal { opacity: 1 !important; transform: none !important; }
+    }
+
+    /* --- Layout Utilities --- */
+    .container {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 var(--space-6);
+    }
+
+    /* --- Reveal Animation --- */
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* === HEADER / NAV === */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: var(--nav-h);
+      background: rgba(13,15,17,0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--bg-border);
+    }
+    nav {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-6);
+    }
+    .nav-wordmark {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .nav-wordmark span { color: var(--accent); }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: var(--space-6);
+      list-style: none;
+      flex-wrap: nowrap;
+    }
+    .nav-links a {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      transition: color 0.15s;
+      white-space: nowrap;
+    }
+    .nav-links a:hover { color: var(--text-primary); text-decoration: none; }
+    .nav-github {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--accent) !important;
+      border: 1px solid var(--accent-dim);
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-sm);
+      transition: background 0.15s, color 0.15s !important;
+      white-space: nowrap;
+    }
+    .nav-github:hover {
+      background: var(--accent-glow);
+      text-decoration: none !important;
+    }
+
+    /* === HERO === */
+    #hero {
+      padding: var(--space-20) 0 var(--space-16);
+      border-bottom: 1px solid var(--bg-border);
+    }
+    .hero-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-12);
+      align-items: start;
+    }
+    .hero-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: var(--space-4);
+    }
+    h1 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      margin-bottom: var(--space-4);
+    }
+    .hero-subhead {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      line-height: 1.65;
+      max-width: 50ch;
+      margin-bottom: var(--space-8);
+    }
+    .hero-cta-row {
+      display: flex;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      background: var(--accent);
+      color: #0d0f11;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 0.6rem 1.2rem;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      white-space: nowrap;
+    }
+    .btn-primary:hover { opacity: 0.88; text-decoration: none; }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      background: transparent;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 400;
+      padding: 0.6rem 1.2rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--bg-border);
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, transform 0.1s;
+      white-space: nowrap;
+    }
+    .btn-secondary:hover { border-color: var(--text-muted); background: var(--bg-surface); text-decoration: none; }
+    .btn-secondary:active { transform: scale(0.98); }
+
+    /* Hero axes */
+    .hero-axes {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+    .axis-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--bg-border);
+      border-radius: var(--radius-md);
+      padding: var(--space-4) var(--space-6);
+    }
+    .axis-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-bottom: var(--space-2);
+    }
+    .axis-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: var(--space-2);
+    }
+    .axis-desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+    .axis-tags {
+      display: flex;
+      gap: var(--space-2);
+      margin-top: var(--space-3);
+      flex-wrap: wrap;
+    }
+    .tag {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      background: var(--bg-raised);
+      border: 1px solid var(--bg-border);
+      color: var(--text-secondary);
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+    }
+    .tag-accent {
+      background: var(--accent-glow);
+      border-color: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    /* === SECTIONS COMMON === */
+    section {
+      padding: var(--space-20) 0;
+      border-bottom: 1px solid var(--bg-border);
+    }
+    .section-header {
+      margin-bottom: var(--space-12);
+    }
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      margin-bottom: var(--space-3);
+    }
+    .section-title {
+      font-size: clamp(1.4rem, 2.5vw, 1.9rem);
+      font-weight: 700;
+      line-height: 1.25;
+      letter-spacing: -0.015em;
+      color: var(--text-primary);
+      margin-bottom: var(--space-3);
+    }
+    .section-sub {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      max-width: 60ch;
+      line-height: 1.65;
+    }
+
+    /* === HOW IT WORKS (Matrix Diagram) === */
+    .matrix-diagram {
+      background: var(--bg-surface);
+      border: 1px solid var(--bg-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-8);
+      overflow-x: auto;
+    }
+    .matrix-flow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      min-width: 520px;
+    }
+    .flow-node {
+      background: var(--bg-raised);
+      border: 1px solid var(--bg-border);
+      border-radius: var(--radius-md);
+      padding: var(--space-3) var(--space-6);
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--text-primary);
+      text-align: center;
+      width: 100%;
+      max-width: 380px;
+    }
+    .flow-arrow {
+      width: 2px;
+      height: 28px;
+      background: var(--bg-border);
+      position: relative;
+    }
+    .flow-arrow::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 6px solid var(--bg-border);
+    }
+    .matrix-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: var(--space-2);
+      width: 100%;
+      max-width: 640px;
+    }
+    .matrix-cell {
+      background: var(--bg-base);
+      border: 1px solid var(--bg-border);
+      border-radius: var(--radius-sm);
+      padding: var(--space-2) var(--space-3);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      text-align: center;
+      line-height: 1.4;
+    }
+    .matrix-cell.with { color: var(--accent); border-color: var(--accent-dim); }
+    .matrix-cell.without { color: var(--text-secondary); }
+    .matrix-cell.header-cell {
+      background: var(--bg-raised);
+      color: var(--text-primary);
+      font-weight: 500;
+      border-color: var(--bg-border);
+    }
+    .fresh-note {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-align: center;
+      padding: var(--space-2) 0;
+      font-style: italic;
+    }
+    .matrix-label {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: var(--space-2);
+    }
+
+    /* === WHAT YOU GET (Tables + Artifact Tree) === */
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-6);
+      margin-bottom: var(--space-8);
+    }
+    .result-table-wrap {
+      background: var(--bg-surface);
+      border: 1px solid var(--bg-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .result-table-title {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      padding: var(--space-3) var(--space-4);
+      border-bottom: 1px solid var(--bg-border);
+      background: var(--bg-raised);
+    }
+    .data-table {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+    }
+    .data-table th {
+      text-align: left;
+      padding: var(--space-2) var(--space-4);
+      color: var(--text-muted);
+      font-weight: 400;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: var(--bg-raised);
+      border-bottom: 1px solid var(--bg-border);
+    }
+    .data-table td {
+      padding: var(--space-3) var(--space-4);
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--bg-border);
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table .col-num { color: var(--text-primary); font-weight: 500; }
+    .data-table .verdict-pos { color: var(--positive); }
+    .data-table .rank-1 { color: var(--accent); }
+    .artifact-block {
+      background: var(--bg-surface);
+      border: 1px solid var(--bg-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .artifact-title {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      padding: var(--space-3) var(--space-4);
+      border-bottom: 1px solid var(--bg-border);
+      background: var(--bg-raised);
+    }
+    .artifact-pre {
+      padding: var(--space-4) var(--space-6);
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      overflow-x: auto;
+    }
+    .artifact-pre .dir { color: var(--text-primary); }
+    .artifact-pre .file { color: var(--accent); }
+    .artifact-pre .comment { color: var(--text-muted); }
+
+    /* === QUICKSTART === */
+    .install-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-6);
+      margin-bottom: var(--space-8);
+    }
+    .code-block-wrap {
+      background: var(--bg-surface);
+      border: 1px solid var(--bg-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .code-block-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-2) var(--space-4);
+      background: var(--bg-raised);
+      border-bottom: 1px solid var(--bg-border);
+    }
+    .code-block-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .copy-btn {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid var(--bg-border);
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .copy-btn:hover { color: var(--accent); border-color: var(--accent-dim); background: var(--accent-glow); }
+    .copy-btn:active { transform: scale(0.97); }
+    .skip-link { position:absolute; left:-9999px; top:auto; }
+    .skip-link:focus { left:var(--space-4); top:var(--space-4); z-index:200; background:var(--accent); color:#0d0f11; padding:var(--space-2) var(--space-4); border-radius:var(--radius-sm); }
+
+    .copy-status {
+      position: absolute;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+    pre.code-content {
+      padding: var(--space-4) var(--space-6);
+      font-size: 0.8rem;
+      line-height: 1.7;
+      color: var(--text-secondary);
+      overflow-x: auto;
+      white-space: pre;
+    }
+    pre.code-content .comment { color: var(--text-muted); }
+    pre.code-content .cmd { color: var(--text-primary); }
+    pre.code-content .flag { color: var(--accent); }
+    .quickstart-note {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      padding: var(--space-4) 0;
+      border-top: 1px solid var(--bg-border);
+      margin-top: var(--space-6);
+    }
+    .quickstart-note strong { color: var(--text-secondary); }
+
+    /* === GENERIC TABLE SECTION === */
+    .table-section-wrap {
+      background: var(--bg-surface);
+      border: 1px solid var(--bg-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .table-section-title {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      padding: var(--space-3) var(--space-4);
+      border-bottom: 1px solid var(--bg-border);
+      background: var(--bg-raised);
+    }
+    .prose-table {
+      font-size: 0.875rem;
+      width: 100%;
+    }
+    .prose-table th {
+      text-align: left;
+      padding: var(--space-3) var(--space-4);
+      color: var(--text-muted);
+      font-weight: 400;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: var(--bg-raised);
+      border-bottom: 1px solid var(--bg-border);
+    }
+    .prose-table td {
+      padding: var(--space-3) var(--space-4);
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--bg-border);
+      vertical-align: top;
+    }
+    .prose-table tr:last-child td { border-bottom: none; }
+    .prose-table code {
+      background: var(--bg-raised);
+      border: 1px solid var(--bg-border);
+      padding: 1px 5px;
+      border-radius: var(--radius-sm);
+      font-size: 0.78rem;
+      color: var(--text-primary);
+    }
+
+    /* === VERDICT TABLE === */
+    .verdict-pos-row td:nth-child(2) { color: var(--positive); font-weight: 500; }
+    .verdict-neg-row td:nth-child(2) { color: var(--negative); font-weight: 500; }
+    .verdict-caveat {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      padding: var(--space-4);
+      border-top: 1px solid var(--bg-border);
+      font-style: italic;
+    }
+
+    /* === WORKED EXAMPLE === */
+    .example-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-6);
+    }
+    .example-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--bg-border);
+      border-radius: var(--radius-md);
+      padding: var(--space-6);
+    }
+    .example-card-title {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: var(--space-3);
+    }
+    .example-card-headline {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: var(--space-3);
+    }
+    .example-verdict {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      padding: 3px 10px;
+      border-radius: var(--radius-sm);
+      margin-bottom: var(--space-4);
+    }
+    .example-verdict.pos {
+      background: rgba(34,211,238,0.1);
+      border: 1px solid var(--accent-dim);
+      color: var(--accent);
+    }
+    .example-verdict.neutral {
+      background: rgba(148,163,184,0.08);
+      border: 1px solid var(--bg-border);
+      color: var(--neutral);
+    }
+    .example-body {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+    .example-link-row {
+      margin-top: var(--space-8);
+      padding-top: var(--space-6);
+      border-top: 1px solid var(--bg-border);
+    }
+
+    /* === FOOTER === */
+    footer {
+      padding: var(--space-12) 0;
+    }
+    .footer-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-8);
+      align-items: start;
+    }
+    .footer-wordmark {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-primary);
+      margin-bottom: var(--space-3);
+    }
+    .footer-wordmark span { color: var(--accent); }
+    .footer-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+    .footer-links {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    .footer-link-row {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+    .footer-link-row a {
+      color: var(--text-secondary);
+      transition: color 0.15s;
+    }
+    .footer-link-row a:hover { color: var(--accent); }
+
+    /* === RESPONSIVE OVERFLOW FIXES === */
+
+    /* Fix 1: grid items default to min-width:auto and refuse to shrink below
+       their content's intrinsic width, defeating inner overflow-x:auto on
+       descendants (code blocks, tables). Setting min-width:0 on direct children
+       of every grid container lets tracks compress to the viewport width so
+       inner scroll containers work as intended. */
+    .hero-inner > *,
+    .results-grid > *,
+    .install-grid > *,
+    .example-grid > *,
+    .footer-inner > * { min-width: 0; }
+
+    /* Fix 2: defense-in-depth word wrapping for all text elements so long
+       tokens (URLs, identifiers) cannot push the layout wider than the viewport. */
+    h1, h2, h3, p,
+    .section-title, .hero-subhead, .section-sub { overflow-wrap: break-word; }
+
+    /* Fix 3: make the inner table inside each bordered wrapper independently
+       scrollable. The wrapper keeps its rounded border and background; an inner
+       div carries overflow-x:auto so the table can scroll without the border
+       radius being lost and without the wrapper clipping the table on narrow
+       viewports. Applied via a descendant rule so no HTML changes are needed. */
+    .result-table-wrap .data-table,
+    .table-section-wrap .prose-table {
+      display: block;
+      overflow-x: auto;
+      /* restore table layout inside the block-level scroll container */
+      width: max-content;
+      min-width: 100%;
+    }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 768px) {
+      :root { --space-20: 3rem; --space-16: 2.5rem; --space-12: 2rem; }
+      .hero-inner { grid-template-columns: 1fr; gap: var(--space-8); }
+      .results-grid { grid-template-columns: 1fr; }
+      .install-grid { grid-template-columns: 1fr; }
+      .example-grid { grid-template-columns: 1fr; }
+      .footer-inner { grid-template-columns: 1fr; }
+      .nav-links li:not(:last-child) { display: none; }
+      .matrix-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 480px) {
+      :root { --space-6: 1rem; }
+      h1 { font-size: 1.75rem; }
+      .nav-links { display: none; }
+      .nav-github { display: flex; }
+      .matrix-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (min-width: 1280px) {
+      .hero-inner { gap: var(--space-16); }
+    }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- ===== HEADER / NAV ===== -->
+  <header>
+    <div class="container">
+      <nav aria-label="Main navigation">
+        <a href="#hero" class="nav-wordmark"><span>skill</span>-ab-eval</a>
+        <ul class="nav-links" role="list">
+          <li><a href="#how-it-works">How it works</a></li>
+          <li><a href="#what-you-get">Results</a></li>
+          <li><a href="#quickstart">Quickstart</a></li>
+          <li><a href="#runners">Runners</a></li>
+          <li><a href="#worked-example">Example</a></li>
+          <li>
+            <a
+              href="https://github.com/cskwork/skill-ab-eval"
+              class="nav-github"
+              target="_blank"
+              rel="noopener"
+              aria-label="View skill-ab-eval on GitHub (opens in new tab)"
+            >GitHub</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <div aria-live="polite" class="copy-status" id="copy-status-global"></div>
+
+    <!-- ===== HERO ===== -->
+    <section id="hero" aria-labelledby="hero-heading">
+      <div class="container">
+        <div class="hero-inner">
+
+          <!-- Left: copy + CTA -->
+          <div>
+            <p class="hero-eyebrow">Open-source evaluation harness</p>
+            <h1 id="hero-heading">Prove what actually works</h1>
+            <p class="hero-subhead">
+              Two questions, one harness, real evidence: does loading a SKILL.md
+              change the agent's behavior, and which CLI agent performs best on
+              your task?
+            </p>
+            <div class="hero-cta-row">
+              <a
+                href="https://github.com/cskwork/skill-ab-eval"
+                class="btn-primary"
+                target="_blank"
+                rel="noopener"
+              >View on GitHub</a>
+              <a href="#quickstart" class="btn-secondary">Quickstart</a>
+            </div>
+          </div>
+
+          <!-- Right: two axes -->
+          <div class="hero-axes" role="group" aria-label="The two evaluation axes">
+            <div class="axis-card">
+              <p class="axis-label">Skill axis</p>
+              <p class="axis-title">Does your SKILL.md actually help?</p>
+              <p class="axis-desc">
+                Compares agent output when a SKILL.md is loaded against the
+                baseline run without it. Produces a lift score per harness, so
+                you know if the skill earns its place or is dead weight in the
+                context window.
+              </p>
+              <div class="axis-tags">
+                <span class="tag tag-accent">with_skill</span>
+                <span class="tag">without_skill</span>
+                <span class="tag">lift score</span>
+              </div>
+            </div>
+            <div class="axis-card">
+              <p class="axis-label">Harness axis</p>
+              <p class="axis-title">Which CLI agent is best for this task?</p>
+              <p class="axis-desc">
+                Runs the same prompt through each CLI in a fresh, isolated
+                context. A judge grades every output against your assertions,
+                repeated over N trials, producing a ranked leaderboard.
+              </p>
+              <div class="axis-tags">
+                <span class="tag">claude</span>
+                <span class="tag">codex</span>
+                <span class="tag">gemini</span>
+                <span class="tag">agy</span>
+                <span class="tag">openai</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== HOW IT WORKS ===== -->
+    <section id="how-it-works" aria-labelledby="hiw-heading">
+      <div class="container">
+        <div class="section-header reveal">
+          <p class="section-label">How it works</p>
+          <h2 class="section-title" id="hiw-heading">One task. Full matrix. Real verdict.</h2>
+          <p class="section-sub">
+            Every cell in the matrix runs in a fresh, isolated context.
+            That isolation is the only thing that makes the result valid.
+          </p>
+        </div>
+
+        <div class="matrix-diagram reveal">
+          <div class="matrix-flow">
+
+            <!-- Input node -->
+            <div class="flow-node" style="background:var(--bg-raised);border-color:var(--accent-dim);color:var(--accent);">
+              one task prompt (a skill's eval, or one you type)
+            </div>
+            <div class="flow-arrow"></div>
+
+            <!-- Matrix label -->
+            <p class="matrix-label">matrix: harness x {with_skill, without_skill}</p>
+
+            <!-- Matrix grid -->
+            <div class="matrix-grid">
+              <div class="matrix-cell header-cell"></div>
+              <div class="matrix-cell header-cell">claude</div>
+              <div class="matrix-cell header-cell">codex</div>
+              <div class="matrix-cell header-cell">gemini</div>
+              <div class="matrix-cell header-cell">...</div>
+
+              <div class="matrix-cell with" style="font-weight:500;">with_skill</div>
+              <div class="matrix-cell with">fresh ctx</div>
+              <div class="matrix-cell with">fresh ctx</div>
+              <div class="matrix-cell with">fresh ctx</div>
+              <div class="matrix-cell with">fresh ctx</div>
+
+              <div class="matrix-cell without">without</div>
+              <div class="matrix-cell without">fresh ctx</div>
+              <div class="matrix-cell without">fresh ctx</div>
+              <div class="matrix-cell without">fresh ctx</div>
+              <div class="matrix-cell without">fresh ctx</div>
+            </div>
+
+            <p class="fresh-note">Fresh, isolated context per cell is what makes it valid.</p>
+            <div class="flow-arrow"></div>
+
+            <!-- Judge node -->
+            <div class="flow-node">
+              judge (any harness) x N trials
+            </div>
+            <div class="flow-arrow"></div>
+
+            <!-- Output node -->
+            <div class="flow-node" style="background:var(--bg-raised);border-color:var(--accent-dim);color:var(--accent);">
+              skill-lift per harness + harness leaderboard
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== WHAT YOU GET ===== -->
+    <section id="what-you-get" aria-labelledby="wyg-heading">
+      <div class="container">
+        <div class="section-header reveal">
+          <p class="section-label">Results</p>
+          <h2 class="section-title" id="wyg-heading">Numbers, not narrative</h2>
+          <p class="section-sub">
+            Every run writes a workspace with full receipts: per-cell answers,
+            judge scores, and a summary report.
+          </p>
+        </div>
+
+        <!-- Two result tables side by side -->
+        <div class="results-grid reveal">
+          <div class="result-table-wrap">
+            <p class="result-table-title">Skill lift by harness</p>
+            <table class="data-table" aria-label="Skill lift by harness table">
+              <thead>
+                <tr>
+                  <th scope="col">harness</th>
+                  <th scope="col">with</th>
+                  <th scope="col">without</th>
+                  <th scope="col">lift</th>
+                  <th scope="col">verdict</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="col-num">claude</td>
+                  <td class="col-num">1.00</td>
+                  <td>0.50</td>
+                  <td class="col-num">+0.50</td>
+                  <td class="verdict-pos">clear positive</td>
+                </tr>
+                <tr>
+                  <td class="col-num">codex</td>
+                  <td class="col-num">1.00</td>
+                  <td>0.62</td>
+                  <td class="col-num">+0.38</td>
+                  <td class="verdict-pos">clear positive</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="result-table-wrap">
+            <p class="result-table-title">Harness leaderboard (with skill)</p>
+            <table class="data-table" aria-label="Harness leaderboard table">
+              <thead>
+                <tr>
+                  <th scope="col">rank</th>
+                  <th scope="col">harness</th>
+                  <th scope="col">score</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="rank-1">1</td>
+                  <td class="rank-1">claude</td>
+                  <td class="rank-1">1.00</td>
+                </tr>
+                <tr>
+                  <td class="col-num">2</td>
+                  <td class="col-num">codex</td>
+                  <td class="col-num">1.00</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Artifact tree -->
+        <div class="artifact-block reveal">
+          <p class="artifact-title">Workspace artifact tree</p>
+          <pre class="artifact-pre" aria-label="Workspace directory structure"><span class="dir">skill-ab-eval-workspace/&lt;name&gt;/iteration-1/</span>
+  <span class="file">report.md</span>        <span class="comment"># skill-lift table + harness leaderboard</span>
+  <span class="file">results.json</span>     <span class="comment"># every cell, metric, judge, trials</span>
+  <span class="dir">&lt;eval-id&gt;/&lt;runner&gt;/&lt;side&gt;/trial-N/</span>
+    <span class="file">answer.md</span>      <span class="comment"># raw agent output</span>
+    <span class="file">judge.json</span>     <span class="comment"># pass/fail per assertion + 0-10 score</span></pre>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== INSTALL + QUICKSTART ===== -->
+    <section id="quickstart" aria-labelledby="qs-heading">
+      <div class="container">
+        <div class="section-header reveal">
+          <h2 class="section-title" id="qs-heading">Install and run</h2>
+          <p class="section-sub">Two install paths, no build step, stdlib only.</p>
+        </div>
+
+        <!-- Install: two paths -->
+        <div class="install-grid reveal">
+          <!-- Claude Code skill -->
+          <div>
+            <div class="code-block-wrap">
+              <div class="code-block-header">
+                <span class="code-block-label">Claude Code skill install</span>
+                <button
+                  class="copy-btn"
+                  data-copy="git clone https://github.com/cskwork/skill-ab-eval ~/.claude/skills/skill-ab-eval"
+                  aria-label="Copy Claude Code install command"
+                >Copy</button>
+              </div>
+              <pre class="code-content"><span class="cmd">git clone https://github.com/cskwork/skill-ab-eval \
+  ~/.claude/skills/skill-ab-eval</span></pre>
+            </div>
+          </div>
+          <!-- Standalone CLI -->
+          <div>
+            <div class="code-block-wrap">
+              <div class="code-block-header">
+                <span class="code-block-label">Standalone CLI</span>
+                <button
+                  class="copy-btn"
+                  data-copy="git clone https://github.com/cskwork/skill-ab-eval && cd skill-ab-eval
+export PATH=&quot;$PWD/bin:$PATH&quot;
+skill-ab-eval runners"
+                  aria-label="Copy standalone CLI install commands"
+                >Copy</button>
+              </div>
+              <pre class="code-content"><span class="cmd">git clone https://github.com/cskwork/skill-ab-eval &amp;&amp; cd skill-ab-eval</span>
+<span class="cmd">export PATH="$PWD/bin:$PATH"</span>
+<span class="cmd">skill-ab-eval runners</span>     <span class="comment"># list usable harnesses</span></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quickstart commands -->
+        <div class="reveal" style="margin-top:var(--space-6);">
+          <div class="code-block-wrap">
+            <div class="code-block-header">
+              <span class="code-block-label">Quickstart commands</span>
+              <button
+                class="copy-btn"
+                data-copy='skill-ab-eval task "Explain async/await to a junior in 5 bullets." --runners claude,codex,gemini --judge claude --trials 2
+
+skill-ab-eval task "Write a git commit message for the staged diff." \
+  --skill examples/conventional-commit \
+  --assert "Subject line is 50 characters or fewer." \
+  --assert "Ends with a '"'"'Refs:'"'"' footer." \
+  --runners claude,codex --judge claude
+
+skill-ab-eval run examples/conventional-commit --runners claude,gemini --judge claude'
+                aria-label="Copy quickstart commands"
+              >Copy</button>
+            </div>
+            <pre class="code-content"><span class="comment"># compare CLIs on a task you give (no skill, any domain)</span>
+<span class="cmd">skill-ab-eval task "Explain async/await to a junior in 5 bullets." \</span>
+<span class="cmd">  <span class="flag">--runners</span> claude,codex,gemini <span class="flag">--judge</span> claude <span class="flag">--trials</span> 2</span>
+
+<span class="comment"># does a skill help - and on which harness?</span>
+<span class="cmd">skill-ab-eval task "Write a git commit message for the staged diff." \</span>
+<span class="cmd">  <span class="flag">--skill</span> examples/conventional-commit \</span>
+<span class="cmd">  <span class="flag">--assert</span> "Subject line is 50 characters or fewer." \</span>
+<span class="cmd">  <span class="flag">--assert</span> "Ends with a 'Refs:' footer." \</span>
+<span class="cmd">  <span class="flag">--runners</span> claude,codex <span class="flag">--judge</span> claude</span>
+
+<span class="comment"># a whole evals suite across harnesses</span>
+<span class="cmd">skill-ab-eval run examples/conventional-commit <span class="flag">--runners</span> claude,gemini <span class="flag">--judge</span> claude</span></pre>
+          </div>
+        </div>
+
+        <p class="quickstart-note reveal">
+          <strong>Requirements:</strong> bash + python3 and at least one of
+          <code>claude</code>, <code>codex</code>, <code>gemini</code>, <code>agy</code>,
+          or <code>OPENAI_API_KEY</code>. No pip install - stdlib only.
+        </p>
+
+      </div>
+    </section>
+
+    <!-- ===== RUNNERS TABLE ===== -->
+    <section id="runners" aria-labelledby="runners-heading">
+      <div class="container">
+        <div class="section-header reveal">
+          <h2 class="section-title" id="runners-heading">Runners (the harness axis)</h2>
+          <p class="section-sub">
+            Each runner is a shell adapter in <code>runners/</code>.
+            Drop a <code>runners/&lt;name&gt;.sh</code> to add your own.
+          </p>
+        </div>
+
+        <div class="table-section-wrap reveal">
+          <table class="prose-table" aria-label="Available runners and their authentication">
+            <thead>
+              <tr>
+                <th scope="col">runner</th>
+                <th scope="col">CLI / API</th>
+                <th scope="col">auth</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>claude</code></td>
+                <td>Claude Code (<code>claude -p</code>)</td>
+                <td><code>claude login</code> or <code>ANTHROPIC_API_KEY</code></td>
+              </tr>
+              <tr>
+                <td><code>codex</code></td>
+                <td>OpenAI Codex (<code>codex exec</code>)</td>
+                <td><code>codex login</code> or <code>OPENAI_API_KEY</code></td>
+              </tr>
+              <tr>
+                <td><code>gemini</code></td>
+                <td>Gemini CLI (<code>gemini -p</code>)</td>
+                <td><code>gemini login</code></td>
+              </tr>
+              <tr>
+                <td><code>agy</code></td>
+                <td>Antigravity (<code>agy -p</code>)</td>
+                <td><code>agy install</code> plus Google sign-in</td>
+              </tr>
+              <tr>
+                <td><code>openai</code></td>
+                <td>OpenAI HTTP API</td>
+                <td><code>OPENAI_API_KEY</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== READING THE VERDICT ===== -->
+    <section id="verdict" aria-labelledby="verdict-heading">
+      <div class="container">
+        <div class="section-header reveal">
+          <h2 class="section-title" id="verdict-heading">Reading the verdict</h2>
+          <p class="section-sub">
+            Lift is the pass-rate delta between with_skill and without_skill runs.
+          </p>
+        </div>
+
+        <div class="table-section-wrap reveal">
+          <table class="prose-table" aria-label="Verdict thresholds by lift score">
+            <thead>
+              <tr>
+                <th scope="col">lift (pass-rate / score delta)</th>
+                <th scope="col">verdict</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="verdict-pos-row">
+                <td>&ge; +0.20</td>
+                <td>clear positive: the skill helps</td>
+              </tr>
+              <tr>
+                <td>+0.05 to +0.20</td>
+                <td>marginal: directional</td>
+              </tr>
+              <tr>
+                <td>-0.05 to +0.05</td>
+                <td>no measurable effect: dead weight</td>
+              </tr>
+              <tr class="verdict-neg-row">
+                <td>&le; -0.05</td>
+                <td>negative: the skill hurts</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="verdict-caveat">
+            A few trials is directional, not statistically significant. Raise
+            <code>--trials</code> to strengthen the signal.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== WORKED EXAMPLE ===== -->
+    <section id="worked-example" aria-labelledby="we-heading">
+      <div class="container">
+        <div class="section-header reveal">
+          <h2 class="section-title" id="we-heading">Worked example: conventional-commit</h2>
+          <p class="section-sub">
+            Same skill, two harnesses, opposite verdicts. Both are correct.
+            "Does my skill work?" has no answer without naming the harness.
+          </p>
+        </div>
+
+        <div class="example-grid reveal">
+          <div class="example-card">
+            <p class="example-card-title">agent-native (fresh subagents, no global rules)</p>
+            <p class="example-card-headline">Skill helps: +0.29 lift</p>
+            <span class="example-verdict pos">clear positive</span>
+            <p class="example-body">
+              Running with fresh subagents and no global rules, the conventional-commit
+              skill produces a clear positive lift of +0.29. The harness notes that
+              <code>with_skill</code> still slipped once, which the raw numbers surface
+              rather than hide.
+            </p>
+          </div>
+          <div class="example-card">
+            <p class="example-card-title">cli-orchestrator (claude -p + gemini -p)</p>
+            <p class="example-card-headline">Skill is dead weight on claude; gemini non-answer exposed</p>
+            <span class="example-verdict neutral">0.00 lift on claude</span>
+            <p class="example-body">
+              On claude, the skill shows 0.00 lift because the user's global
+              CLAUDE.md already mandates the same conventions. The skill is not
+              wrong - it is redundant. On gemini, the headless nested setup returned
+              a non-answer, which the leaderboard surfaces rather than silently drops.
+            </p>
+          </div>
+        </div>
+
+        <div class="example-link-row reveal">
+          <a
+            href="https://github.com/cskwork/skill-ab-eval/tree/main/examples/conventional-commit/result"
+            target="_blank"
+            rel="noopener"
+            style="font-size:0.875rem;"
+          >See the committed results on GitHub</a>
+          <span style="color:var(--text-muted);font-size:0.85rem;margin-left:1rem;">
+            Both run artifacts are committed under
+            <code style="font-size:0.78rem;">examples/conventional-commit/result/</code>
+          </span>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <div>
+          <p class="footer-wordmark"><span>skill</span>-ab-eval</p>
+          <p class="footer-meta">
+            MIT licensed. Author: cskwork.<br>
+            Eval format compatible with the agentskills.io specification.
+          </p>
+        </div>
+        <div class="footer-links">
+          <p class="footer-link-row">
+            Inspired by
+            <a href="https://github.com/darkrishabh/agent-skills-eval" target="_blank" rel="noopener">darkrishabh/agent-skills-eval</a>
+          </p>
+          <p class="footer-link-row">
+            Eval format compatible with
+            <a href="https://agentskills.io/specification" target="_blank" rel="noopener">agentskills.io specification</a>
+          </p>
+          <p class="footer-link-row">
+            Harness axis built on
+            <a href="https://github.com/cskwork/cc-agent-call" target="_blank" rel="noopener">cskwork/cc-agent-call</a>
+          </p>
+          <p class="footer-link-row">
+            Repository:
+            <a href="https://github.com/cskwork/skill-ab-eval" target="_blank" rel="noopener">github.com/cskwork/skill-ab-eval</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Copy-to-clipboard for all .copy-btn elements
+    document.querySelectorAll('.copy-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var text = btn.getAttribute('data-copy');
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(function() {
+          var orig = btn.textContent;
+          var origLabel = btn.getAttribute('aria-label') || '';
+          btn.textContent = 'Copied';
+          if (origLabel) btn.setAttribute('aria-label', origLabel.replace('Copy', 'Copied'));
+          var status = document.getElementById('copy-status-global');
+          if (status) { status.textContent = 'Copied to clipboard'; }
+          setTimeout(function() {
+            btn.textContent = orig;
+            if (origLabel) btn.setAttribute('aria-label', origLabel);
+            if (status) { status.textContent = ''; }
+          }, 1800);
+        }).catch(function() {
+          btn.textContent = 'Failed';
+          setTimeout(function() { btn.textContent = 'Copy'; }, 1800);
+        });
+      });
+    });
+
+    // Scroll-reveal for .reveal elements
+    if (window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.08 });
+      document.querySelectorAll('.reveal').forEach(function(el) {
+        observer.observe(el);
+      });
+    } else {
+      // Reduced motion: make all visible immediately
+      document.querySelectorAll('.reveal').forEach(function(el) {
+        el.classList.add('visible');
+      });
+    }
+  </script>
+
+</body>
+</html>

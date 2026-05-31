@@ -1,0 +1,4 @@
+# Keep only the final committed QA evidence; ignore intermediate/baseline renders.
+*.png
+!m-after2-360.png
+!m-after2-1280.png
