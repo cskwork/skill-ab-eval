@@ -1,0 +1,16 @@
+{
+  "$schema": "https://www.schemastore.org/claude-code-marketplace.json",
+  "name": "skill-ab-eval",
+  "description": ">-",
+  "owner": {
+    "name": "cskwork"
+  },
+  "plugins": [
+    {
+      "name": "skill-ab-eval",
+      "description": ">-",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}
