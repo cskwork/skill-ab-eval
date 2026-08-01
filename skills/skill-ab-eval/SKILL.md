@@ -1,6 +1,7 @@
 ---
 name: skill-ab-eval
-description: skill-ab-eval — A/B test skill lift, compare CLI agents. Use when: "evaluate skill", "skill A/B", "compare CLIs".
+description: 'skill-ab-eval — A/B test skill lift, compare CLI agents. Use when: "evaluate skill", "skill A/B", "compare CLIs".'
+
 ---
 
 
