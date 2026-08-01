@@ -1,18 +1,8 @@
 ---
 name: skill-ab-eval
 description: skill-ab-eval — A/B test skill lift, compare CLI agents. Use when: "evaluate skill", "skill A/B", "compare CLIs".
-license: MIT
-compatibility: >-
-  Agent-native mode needs fresh-context subagents (Claude Code Task/Agent tool).
-  CLI mode needs bash + python3 and at least one of: claude, codex, gemini, agy,
-  or OPENAI_API_KEY. Eval format is agentskills.io-compatible.
-metadata:
-  owner: cskwork
-  domain: evaluation
-  inspired_by: https://github.com/darkrishabh/agent-skills-eval
-  harness_calls: https://github.com/cskwork/cc-agent-call
-  spec: https://agentskills.io/specification
 ---
+
 
 # skill-ab-eval — prove what actually works
 
