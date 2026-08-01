@@ -1,7 +1,7 @@
 {
   "name": "skill-ab-eval",
   "version": "0.1.0",
-  "description": ">-",
+  "description": "Empirically measure whether loading a SKILL.md actually changes behavior (with_skill vs without_skill baseline) and which CLI agent harness does the task best. Use to validate a new skill before shipping.",
   "author": {
     "name": "cskwork",
     "url": "https://github.com/cskwork"
@@ -18,8 +18,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Skill Ab Eval",
-    "shortDescription": ">-",
-    "longDescription": ">-",
+    "shortDescription": "",
+    "longDescription": "",
     "developerName": "cskwork",
     "category": "Productivity",
     "capabilities": [
