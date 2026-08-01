@@ -1,0 +1,34 @@
+{
+  "name": "skill-ab-eval",
+  "version": "0.1.0",
+  "description": ">-",
+  "author": {
+    "name": "cskwork",
+    "url": "https://github.com/cskwork"
+  },
+  "homepage": "https://github.com/cskwork/skill-ab-eval",
+  "repository": "https://github.com/cskwork/skill-ab-eval",
+  "license": "MIT",
+  "keywords": [
+    "skill-ab-eval",
+    "skill",
+    "claude-code",
+    "codex"
+  ],
+  "skills": "./",
+  "interface": {
+    "displayName": "Skill Ab Eval",
+    "shortDescription": ">-",
+    "longDescription": ">-",
+    "developerName": "cskwork",
+    "category": "Productivity",
+    "capabilities": [
+      "Instructions"
+    ],
+    "websiteURL": "https://github.com/cskwork/skill-ab-eval",
+    "defaultPrompt": [
+      "Use skill-ab-eval for this task."
+    ],
+    "brandColor": "#2563EB"
+  }
+}
