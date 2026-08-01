@@ -1,4 +1,4 @@
 # skill-ab-eval
 
-@./SKILL.md
+@./skills/skill-ab-eval/SKILL.md
 
