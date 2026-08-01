@@ -1,11 +1,8 @@
 ---
 name: conventional-commit
-description: Write git commit messages that follow Conventional Commits plus this team's house rules. Use when writing or rewriting a commit message.
-license: MIT
-metadata:
-  owner: example
-  domain: git
+description: Write git commit messages that follow Conventional Commits plus this team's house rules. Use when writing or...
 ---
+
 
 # Conventional Commit (house style)
 
