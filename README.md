@@ -1,3 +1,5 @@
+<p align="center"><img src="logo.png" width="120" alt="logo" /></p>
+
 # skill-ab-eval
 
 **Prove what actually works — for any task, in any domain.**
