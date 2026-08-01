@@ -1,17 +1,6 @@
 ---
 name: skill-ab-eval
 description: skill-ab-eval — A/B test skill lift, compare CLI agents. Use when: "evaluate skill", "skill A/B", "compare CLIs".
-  Empirically measure two things for any task or domain: (1) does loading a
-  SKILL.md actually change behavior — with_skill vs without_skill (baseline) — and
-  (2) which CLI agent harness does the task best — claude vs codex vs gemini vs agy
-  vs an OpenAI-compatible API. Runs the same prompt across the matrix in fresh,
-  isolated contexts (subagents or separate CLI processes), a judge grades every
-  output, repeated over trials, and you get a skill-lift table plus a harness
-  leaderboard. Use to validate a new skill before shipping, catch skills that do
-  nothing (or hurt), compare CLIs on a task you give, or pick the best harness for
-  a domain. Triggers: evaluate skill, test skill, does my skill work, skill A/B,
-  measure skill lift, compare CLIs, which agent is best, claude vs codex vs gemini,
-  harness eval, benchmark agents on a task.
 license: MIT
 compatibility: >-
   Agent-native mode needs fresh-context subagents (Claude Code Task/Agent tool).
