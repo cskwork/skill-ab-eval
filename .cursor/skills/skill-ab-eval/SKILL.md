@@ -1,6 +1,6 @@
 ---
 name: skill-ab-eval
-description: >-
+description: skill-ab-eval — A/B test skill lift, compare CLI agents. Use when: "evaluate skill", "skill A/B", "compare CLIs".
   Empirically measure two things for any task or domain: (1) does loading a
   SKILL.md actually change behavior — with_skill vs without_skill (baseline) — and
   (2) which CLI agent harness does the task best — claude vs codex vs gemini vs agy
