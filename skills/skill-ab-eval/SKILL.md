@@ -57,9 +57,10 @@ Reusing a context leaks the skill into the baseline and silently breaks the resu
 
 ### A) CLI mode (any agent, CI, headless) — `scripts/run_eval.py` / `bin/skill-ab-eval`
 
-The orchestrator drives real CLI harnesses through shell adapters in `runners/`
-(claude/codex/gemini/agy) plus a built-in OpenAI HTTP backend. It builds the
-matrix, judges, repeats trials, and writes artifacts.
+The orchestrator runs `claude`/`codex`/`gemini`/`agy` straight off `PATH` (no shell,
+so Windows works too), plus a built-in OpenAI HTTP backend when `OPENAI_API_KEY` is
+set. Any other `--runners` name resolves to a `runners/<name>.sh` adapter and needs
+bash. It builds the matrix, judges, repeats trials, and writes artifacts.
 
 ```bash
 # what can I run right now?
@@ -80,9 +81,11 @@ skill-ab-eval task "Write a git commit message for the staged diff." \
 skill-ab-eval run examples/conventional-commit --runners claude,gemini --judge claude
 ```
 
-Output → `skill-ab-eval-workspace/<name>/iteration-1/`: per-cell `answer.md` +
-`judge.json`, a `results.json`, and a `report.md` with the lift table + leaderboard.
-See `reference/harnesses.md` and `runners/README.md`.
+Output → `skill-ab-eval-workspace/<name>/iteration-N/` (N auto-increments, so reruns
+never overwrite): per-cell `answer.md` + `judge.json`, a `results.json`, and a
+`report.md` with the lift table + leaderboard.
+Read `reference/harnesses.md` before choosing runners and a judge; read the repo-root
+`runners/README.md` before writing a custom adapter.
 
 ### B) Agent-native mode (inside a coding agent with subagents)
 
@@ -133,7 +136,9 @@ judge). Follow the protocol below.
    swapped and average (kills position bias).
 4. **Aggregate.** Per side, assertion pass rate across trials.
    `lift = with_skill_rate − without_skill_rate`.
-5. **Verdict + artifacts.** Classify (table below), write the workspace + report.md.
+5. **Verdict + artifacts.** Classify with the verdict table below, then write the
+   workspace in the layout below — done when every (eval × side × trial) cell has its
+   `answer.md` and `judge.json`, and `results.json` + `report.md` sit at the root.
 
 To also cover the **harness axis** from agent-native mode, repeat the runs using
 different CLIs via the `runners/` adapters (or cc-agent-call's delegation skills)
@@ -201,7 +206,7 @@ Return STRICT JSON, no prose:
 - **Claude Code** — agent-native: Task/Agent tool, fresh `general-purpose` subagent;
   launch Runner A + B as two tool calls in one message (parallel), then the judge.
   CLI: `bin/skill-ab-eval` with `--runners claude,...`.
-- **Codex / Gemini / Antigravity** — CLI mode; each is a runner adapter. Or use
+- **Codex / Gemini / Antigravity** — CLI mode; each is a built-in runner. Or use
   cc-agent-call's delegation skills to reach them from inside Claude Code.
 - **Headless / CI** — `scripts/run_eval.py` with installed CLIs, or `--runners
   openai` + `OPENAI_API_KEY`. Deterministic, no interactive session.
@@ -219,7 +224,7 @@ Return STRICT JSON, no prose:
 
 ```
 skill-ab-eval-workspace/
-└── <name>/iteration-1/
+└── <name>/iteration-N/        # N auto-increments; reruns never overwrite
     ├── results.json          # cells, skill-lift, leaderboard, metric, judge
     ├── report.md             # skill-lift table + harness leaderboard
     └── <eval-id>/<runner>/<side>/trial-N/{answer.md,judge.json}
