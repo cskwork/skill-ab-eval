@@ -1,0 +1,10 @@
+{
+  "assertions": [
+    true,
+    true,
+    true,
+    true
+  ],
+  "score": 10.0,
+  "notes": "All four assertions pass: feat(api): scope+colon subject of 47 chars, single blank line before body, and a trailing 'Refs: PROJ-481' footer."
+}

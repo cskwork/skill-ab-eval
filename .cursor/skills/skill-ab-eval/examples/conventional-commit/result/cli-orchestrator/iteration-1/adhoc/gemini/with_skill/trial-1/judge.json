@@ -1,0 +1,10 @@
+{
+  "assertions": [
+    false,
+    false,
+    false,
+    false
+  ],
+  "score": 0.0,
+  "notes": "The answer is a non-response ('I'm ready. Please provide your instructions.') containing no commit message, so it satisfies none of the assertions."
+}
