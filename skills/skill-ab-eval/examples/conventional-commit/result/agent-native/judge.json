@@ -1,0 +1,16 @@
+{
+  "_mapping": {
+    "group1": "feat-rate-limit: output_1 = without_skill (B1), output_2 = with_skill (A1)",
+    "group2": "fix-npe: output_1 = with_skill (A2), output_2 = without_skill (B2)",
+    "note": "order randomized + neutral labels so the judge never knew which had the skill"
+  },
+  "group1": {
+    "output_1": { "assertions": [true, true, true, false], "score": 5 },
+    "output_2": { "assertions": [true, true, true, true], "score": 10 }
+  },
+  "group2": {
+    "output_1": { "assertions": [false, true, true], "score": 2 },
+    "output_2": { "assertions": [true, false, false], "score": 3 }
+  },
+  "notes": "Output 2 nails group 1 fully but botches group 2 (51-char subject, no Refs: token), while Output 1 inverts this by missing the Refs: token in group 1 and using the wrong type in group 2."
+}

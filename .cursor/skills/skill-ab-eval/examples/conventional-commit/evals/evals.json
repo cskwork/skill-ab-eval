@@ -1,0 +1,30 @@
+{
+  "skill_name": "conventional-commit",
+  "evals": [
+    {
+      "id": "feat-rate-limit",
+      "name": "feature commit for rate limiting",
+      "prompt": "You are on branch `feature/PROJ-481-rate-limit`. Write a git commit message for this diff:\n\n{{rate-limit.diff}}",
+      "files": ["evals/files/rate-limit.diff"],
+      "expected_output": "A conventional-commit message: subject like 'feat(api): add request rate limiting' that is 50 chars or fewer, a blank line, a body explaining why, and a 'Refs: PROJ-481' footer.",
+      "assertions": [
+        "The subject line starts with a Conventional Commits type (feat/fix/docs/refactor/perf/test/chore), optionally with a scope in parentheses, followed by a colon.",
+        "The subject line (everything before the first newline) is 50 characters or fewer.",
+        "There is exactly one blank line between the subject line and the body.",
+        "The message ends with a 'Refs:' footer that cites the ticket id PROJ-481."
+      ]
+    },
+    {
+      "id": "fix-npe",
+      "name": "bugfix commit for null guard",
+      "prompt": "You are on branch `bugfix/PROJ-512-profile-npe`. Write a git commit message for this diff:\n\n{{npe-fix.diff}}",
+      "files": ["evals/files/npe-fix.diff"],
+      "expected_output": "A conventional-commit message: subject like 'fix(user): guard against missing nickname' that is 50 chars or fewer, a blank line, a body, and a 'Refs: PROJ-512' footer.",
+      "assertions": [
+        "The subject line starts with the Conventional Commits type 'fix', optionally with a scope in parentheses, followed by a colon.",
+        "The subject line (everything before the first newline) is 50 characters or fewer.",
+        "The message ends with a 'Refs:' footer that cites the ticket id PROJ-512."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "assertions": [
+    true,
+    true,
+    true,
+    true
+  ],
+  "score": 10.0,
+  "notes": "Subject 'feat: add IP-based rate limiting middleware' is 43 chars with a valid type, one blank line separates body, and a 'Refs: PROJ-481' footer closes it \u2014 all four assertions pass."
+}

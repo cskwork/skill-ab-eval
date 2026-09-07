@@ -1,0 +1,49 @@
+{
+  "skill_name": "conventional-commit",
+  "metric": "pass_rate",
+  "trials": 1,
+  "judge": "claude",
+  "runners": [
+    "claude",
+    "gemini"
+  ],
+  "skill_axis": true,
+  "skill_lift": [
+    {
+      "runner": "claude",
+      "with_skill": 1.0,
+      "without_skill": 1.0,
+      "lift": 0.0,
+      "verdict": "no measurable effect"
+    },
+    {
+      "runner": "gemini",
+      "with_skill": 0.0,
+      "without_skill": 0.0,
+      "lift": 0.0,
+      "verdict": "no measurable effect"
+    }
+  ],
+  "harness_leaderboard": [
+    {
+      "runner": "claude",
+      "score": 1.0
+    },
+    {
+      "runner": "gemini",
+      "score": 0.0
+    }
+  ],
+  "evals": [
+    {
+      "id": "adhoc",
+      "name": "ad-hoc task",
+      "cells": {
+        "claude|with_skill": 1.0,
+        "claude|without_skill": 1.0,
+        "gemini|with_skill": 0.0,
+        "gemini|without_skill": 0.0
+      }
+    }
+  ]
+}

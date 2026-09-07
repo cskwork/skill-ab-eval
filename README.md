@@ -171,3 +171,7 @@ both: evaluate here, route there.
 Inspired by [`darkrishabh/agent-skills-eval`](https://github.com/darkrishabh/agent-skills-eval)
 and the [agentskills.io](https://agentskills.io) standard; harness axis built on
 [`cskwork/cc-agent-call`](https://github.com/cskwork/cc-agent-call). MIT licensed.
+
+## Maintained skill sources
+
+Edit `skills/skill-ab-eval/` for maintained instructions/helpers and root `runners/`, `templates/`, `examples/` for shared resources. Run `python3 scripts/sync-distributions.py`, then `python3 scripts/sync-distributions.py --check`. Resource copies under the skill and the existing Cursor directory are generated; keep them committed for independent installation.

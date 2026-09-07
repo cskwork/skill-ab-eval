@@ -1,0 +1,25 @@
+diff --git a/src/api/middleware.ts b/src/api/middleware.ts
+index 3a1b2c4..9d8e7f6 100644
+--- a/src/api/middleware.ts
++++ b/src/api/middleware.ts
+@@ -1,6 +1,21 @@
+ import { Request, Response, NextFunction } from "express";
++
++const WINDOW_MS = 60_000;
++const MAX_REQUESTS = 100;
++const hits = new Map<string, { count: number; resetAt: number }>();
++
++export function rateLimit(req: Request, res: Response, next: NextFunction) {
++  const key = req.ip ?? "unknown";
++  const now = Date.now();
++  const entry = hits.get(key);
++  if (!entry || now > entry.resetAt) {
++    hits.set(key, { count: 1, resetAt: now + WINDOW_MS });
++    return next();
++  }
++  if (entry.count >= MAX_REQUESTS) {
++    return res.status(429).json({ error: "rate limit exceeded" });
++  }
++  entry.count += 1;
++  next();
++}

@@ -42,8 +42,7 @@ It's the agent-native cousin of
             skill-lift per harness  +  harness leaderboard
 ```
 
-**Fresh, isolated context per cell is what makes it valid.** Each cell starts
-clean, so the only variables are the harness and whether the skill is loaded.
+**Fresh context per cell is necessary but not sufficient.** Keep model/version, tools, fixture state, permissions, and global/project instructions equivalent. Check automatic skill discovery so the baseline does not load the candidate through another path.
 Reusing a context leaks the skill into the baseline and silently breaks the result.
 
 ## When to use
@@ -91,8 +90,7 @@ Read `reference/harnesses.md` before choosing runners and a judge; read the repo
 
 When you're inside an agent that can spawn subagents (Claude Code Task/Agent tool),
 run the experiment with fresh subagents instead of separate CLI processes — no API
-keys needed. This is the most rigorous form of the **skill axis** (2-way, blind
-judge). Follow the protocol below.
+keys needed. Use the **skill axis** with a 2-way blind judge when fresh subagent contexts can be isolated. Follow the protocol below.
 
 ## Eval format (agentskills.io-compatible)
 
@@ -125,9 +123,8 @@ judge). Follow the protocol below.
 > contaminated. Exact prompts in "Subagent prompt templates" below.
 
 1. **Load.** Read the target `SKILL.md` body (strip frontmatter) and
-   `evals/evals.json`. Inline `files` into each prompt. Pick `trials` (default 3).
-2. **Run both sides, fresh, in parallel.** Per eval, per trial, spawn two subagents
-   in one turn: Runner A (instructions = skill body) and Runner B (no skill). Same
+   `evals/evals.json`. Inline `files` into each prompt. Pick `trials` (default 3). Record whether this is body-only or full-package testing; body-only injection cannot prove supporting scripts/references or discovery work. Bound allowed tools, files, side effects, and spending before starting any runner.
+2. **Run both sides, fresh.** Per eval and trial, use isolated Runner A (skill) and Runner B (no skill). Run sequentially unless independent parallel execution improves cost or elapsed time without shared-state contamination. Same
    task prompt. Capture raw outputs. Runners never see the assertions.
 3. **Judge, fresh + blind.** Spawn one judge subagent. Randomize order, label
    outputs neutrally ("Output 1/2"), give it `expected_output` + `assertions`. It
@@ -146,15 +143,15 @@ and compare — or just use CLI mode A, which does the full matrix for you.
 
 ## Verdict
 
-| lift (pass-rate / score delta) | verdict |
+| lift (pass-rate or normalized 0–1 score delta) | verdict |
 |--------------------------------|---------|
 | ≥ +0.20                        | **clear positive** — the skill helps |
 | +0.05 … +0.20                  | marginal — directional, add trials |
-| −0.05 … +0.05                  | **no measurable effect** — dead weight |
-| ≤ −0.05                        | **negative** — the skill hurts; fix or drop |
+| −0.05 … +0.05                  | **no measurable effect in this sample** |
+| ≤ −0.05                        | **negative in this sample** — investigate regressions |
 
-Be honest about N: a few trials is *directional*, not significant. Report raw
-numbers, not just the label. "No effect" and per-harness differences are real,
+Be honest about N: a few trials is *directional*, not significant. The labels are descriptive heuristics, not confidence tests or automatic delete recommendations. Report raw
+numbers, sample size, and uncertainty. "No effect" and per-harness differences are real,
 useful findings.
 
 ## Subagent prompt templates
@@ -204,12 +201,12 @@ Return STRICT JSON, no prose:
 ## Mapping to your agent
 
 - **Claude Code** — agent-native: Task/Agent tool, fresh `general-purpose` subagent;
-  launch Runner A + B as two tool calls in one message (parallel), then the judge.
+  use separate contexts for A, B, then the judge; concurrency is optional.
   CLI: `bin/skill-ab-eval` with `--runners claude,...`.
 - **Codex / Gemini / Antigravity** — CLI mode; each is a built-in runner. Or use
   cc-agent-call's delegation skills to reach them from inside Claude Code.
 - **Headless / CI** — `scripts/run_eval.py` with installed CLIs, or `--runners
-  openai` + `OPENAI_API_KEY`. Deterministic, no interactive session.
+  openai` + `OPENAI_API_KEY`. Headless execution does not make model outputs deterministic.
 
 ## Anti-bias rules (do not skip)
 
@@ -235,3 +232,5 @@ skill-ab-eval-workspace/
 Read the SKILL.md, infer 3–6 concrete, neutral tasks it claims to improve, write
 2–5 binary `assertions` each from the skill's promises, save `evals/evals.json`,
 then run. Keep prompts neutral so the test stays fair.
+
+Token reporting: distinguish cached input, uncached input, and output when available. Byte counts, raw tokens, or a small measured lift do not prove allowance savings or universal skill value.

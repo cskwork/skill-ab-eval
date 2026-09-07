@@ -1,0 +1,23 @@
+{
+  "skill_name": "conventional-commit",
+  "mode": "agent-native (fresh-context subagents)",
+  "harness": "claude (Task/Agent subagents)",
+  "judge": "claude (blind, neutral labels, randomized order)",
+  "trials": 1,
+  "metric": "assertion pass rate",
+  "skill_axis": true,
+  "evals": [
+    { "id": "feat-rate-limit", "with_skill_pass_rate": 1.0, "without_skill_pass_rate": 0.75, "lift": 0.25 },
+    { "id": "fix-npe", "with_skill_pass_rate": 0.667, "without_skill_pass_rate": 0.333, "lift": 0.333 }
+  ],
+  "overall": {
+    "with_skill_pass_rate": 0.857,
+    "without_skill_pass_rate": 0.571,
+    "lift": 0.286,
+    "verdict": "clear positive"
+  },
+  "honest_notes": [
+    "with_skill still failed one assertion: on fix-npe it used type 'feat' instead of 'fix' — the harness surfaced that the skill helps but did not make the model perfect.",
+    "Single trial per side — directional, not statistically significant. Raise trials for confidence."
+  ]
+}

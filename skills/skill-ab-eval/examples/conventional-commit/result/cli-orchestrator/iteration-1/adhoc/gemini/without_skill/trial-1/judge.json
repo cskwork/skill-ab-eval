@@ -1,0 +1,10 @@
+{
+  "assertions": [
+    false,
+    false,
+    false,
+    false
+  ],
+  "score": 0.0,
+  "notes": "The answer is an unrelated codebase-exploration narrative and contains no commit message, so all four assertions fail."
+}
